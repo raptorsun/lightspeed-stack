@@ -79,18 +79,24 @@ COPY --from=builder /app-root/LICENSE /licenses/
 USER root
 
 # Additional tools for derived images
-RUN microdnf install -y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs jq patch libpq libtiff openjpeg2 lcms2 libjpeg-turbo libwebp
+RUN microdnf install -y --nodocs --setopt=keepcache=0 --setopt=tsflags=nodocs jq patch libpq libtiff openjpeg2 lcms2 libjpeg-turbo libwebp openblas-threads
+
 
 # Create llama-stack directories for library mode
 RUN mkdir -p /opt/app-root/src/.llama/storage /opt/app-root/src/.llama/providers.d && \
-    chown -R 1001:1001 /opt/app-root/src/.llama
+chown -R 1001:1001 /opt/app-root/src/.llama
 
 # Create Hugging Face cache directory for embedding models
 RUN mkdir -p /opt/app-root/src/.cache/huggingface && \
-    chown -R 1001:1001 /opt/app-root/src/.cache
+chown -R 1001:1001 /opt/app-root/src/.cache
 
 # Add executables from .venv to system PATH
 ENV PATH="/app-root/.venv/bin:$PATH"
+
+# todo :remove this after testing
+RUN echo "Verifying numpy installation..." && \
+    python3.12 -c "import numpy; print('numpy version:', numpy.__version__)" && \
+    echo "numpy verification successful"
 
 # Run the application
 EXPOSE 8080
